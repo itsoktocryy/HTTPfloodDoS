@@ -3,7 +3,7 @@ import socket
 def get_all_ips(domain):
     try:
         ip_addresses = socket.gethostbyname_ex(domain)
-        return ip_addresses[2]  # The third element contains a list of IP addresses
+        return ip_addresses[2]
     except socket.gaierror as e:
         return []
 

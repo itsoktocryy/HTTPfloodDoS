@@ -2,13 +2,10 @@ import socket
 
 def check_raw_socket_access():
     try:
-        # Create a raw socket
         raw_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
         
-        # If the socket creation was successful, raw socket access is allowed
         print("Raw socket access is allowed on your system.")
         
-        # Clean up the socket
         raw_socket.close()
     except PermissionError as e:
         print(f"PermissionError: {e}")

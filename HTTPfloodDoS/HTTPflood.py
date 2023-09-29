@@ -6,7 +6,7 @@ import threading
 import time
 from urllib.parse import urlparse
 
-# parse inputs
+
 target_url = ""
 ip = ""
 port = 0

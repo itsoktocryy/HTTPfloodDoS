@@ -1,6 +1,6 @@
 # HTTP flood DoS attack script
 
-This is a simple HTTP flood script written in Python. It can down a website in a few seconds.
+This is a simple HTTP flood script written in Python. It can down a website or router in a few seconds.
 
 ## Usage
 
